@@ -1,0 +1,40 @@
+- name: Create a Google Gemma 2 9B Droplet
+  hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: Read DigitalOcean API key from file
+      set_fact:
+        digital_ocean_api_key: "{{ lookup('file', lookup('env', 'KEYS_DIR') + '/digital_ocean_key') }}"
+
+    - name: Read DigitalOcean user credentials from files
+      set_fact:
+        new_user: "{{ lookup('file', lookup('env', 'KEYS_DIR') + '/digital_ocean_user/username') | trim }}"
+        user_password: "{{ lookup('file', lookup('env', 'KEYS_DIR') + '/digital_ocean_user/password') | trim }}"
+        ssh_public_key: "{{ lookup('file', lookup('env', 'HOME') + '/.ssh/id_rsa.pub') | trim }}"
+
+    - name: Create a new Google Gemma 2 9B Droplet
+      uri:
+        url: https://api.digitalocean.com/v2/droplets
+        method: POST
+        headers:
+          Authorization: "Bearer {{ digital_ocean_api_key }}"
+          Content-Type: application/json
+        body: |
+          {
+            "name": "{{ droplet_name }}",
+            "region": "{{ droplet_region }}",
+            "size": "{{ droplet_size }}",
+            "image": "digitaloceanai-googlegemma29bit",
+            "user_data": "{{ lookup('file', 'app/ansible/create/create_user.sh') }}"
+          }
+        body_format: json
+        status_code: 202
+      register: droplet_creation_response
+      vars:
+        droplet_name: "Google-Gemma-Droplet"
+        droplet_region: "nyc3"
+        droplet_size: "s-2vcpu-4gb"
+
+    - name: Display Droplet creation response
+      debug:
+        var: droplet_creation_response.json

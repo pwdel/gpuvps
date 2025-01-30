@@ -1,0 +1,42 @@
+#!/bin/bash
+# Script to stop the GPU service on DigitalOcean
+
+set -e  # Exit on any error
+
+CONTAINER_NAME="local-ansible-gpu-launcher"
+KEY_FILE="./keys/digitalocean_key"
+ANSIBLE_PLAYBOOK="/scripts/stop_service.yml"
+
+# Function to display help
+display_help() {
+    echo "Usage: $0 [-h|--help]"
+    echo ""
+    echo "Stops the GPU service running on DigitalOcean."
+    echo ""
+    echo "Options:"
+    echo "  -h, --help  Display this help message"
+    exit 0
+}
+
+# Check for help flag
+if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+    display_help
+fi
+
+# Ensure key file exists
+if [ ! -f "$KEY_FILE" ]; then
+    echo "Key file '$KEY_FILE' does not exist. Ensure it is in place and try again." >&2
+    exit 1
+fi
+
+# Check if container is running
+if ! docker ps | grep -q "$CONTAINER_NAME"; then
+    echo "Container '$CONTAINER_NAME' is not running. Nothing to stop." >&2
+    exit 1
+fi
+
+# Run Ansible playbook inside the container
+echo "Stopping the GPU service on DigitalOcean..."
+docker exec -it "$CONTAINER_NAME" ansible-playbook "$ANSIBLE_PLAYBOOK" --extra-vars "@$KEY_FILE"
+
+echo "GPU service stopped successfully."

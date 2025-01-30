@@ -1,0 +1,17 @@
+# app/ansible/test/test.yaml
+- name: Read DigitalOcean API key from file
+  set_fact:
+    digital_ocean_api_key: "{{ lookup('file', lookup('env', 'KEYS_DIR') + '/digital_ocean_key') }}"
+
+- name: Test connection to DigitalOcean API
+  uri:
+    url: https://api.digitalocean.com/v2/droplets
+    method: GET
+    headers:
+      Authorization: "Bearer {{ digital_ocean_api_key }}"
+    return_content: yes
+  register: actions_response
+
+- name: Display API response
+  debug:
+    var: actions_response.json

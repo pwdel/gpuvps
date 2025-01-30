@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  ansible-launcher:
+    image: local-ansible-gpu-launcher
+    container_name: local-ansible-gpu-launcher
+    volumes:
+      - ./app/keys:/app/keys:ro       # Mount keys directory as read-only
+      - ./app/ansible:/app/ansible
+      - ./app/inference:/app/inference
+      - ./app/train:/app/train
+    tty: true
+    environment:
+      - KEYS_DIR=/app/keys

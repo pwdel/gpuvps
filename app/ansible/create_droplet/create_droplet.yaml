@@ -1,0 +1,28 @@
+- name: Set droplet configuration
+  set_fact:
+    droplet_config: >-
+      {{
+        {
+          "name": "{{ droplet_name }}",
+          "region": "{{ droplet_region }}",
+          "size": "{{ droplet_size }}",
+          "image": "{{ droplet_image }}",
+          "user_data": "{{ lookup('file', 'create_user.sh') }}"
+        }
+      }}
+
+- name: Create the droplet
+  uri:
+    url: https://api.digitalocean.com/v2/droplets
+    method: POST
+    headers:
+      Authorization: "Bearer {{ digital_ocean_api_key }}"
+      Content-Type: application/json
+    body: "{{ droplet_config | to_json }}"
+    body_format: json
+    status_code: 202
+  register: droplet_creation_response
+
+- name: Display Droplet creation response
+  debug:
+    var: droplet_creation_response.json

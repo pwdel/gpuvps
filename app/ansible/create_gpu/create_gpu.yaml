@@ -1,0 +1,7 @@
+- name: Create GPU Droplet
+  vars:
+    droplet_name: "GPU-Droplet"
+    droplet_region: "nyc3"
+    droplet_size: "g-2vcpu-8gb"
+    droplet_image: "digitaloceanai-googlegemma29bit"
+  include_tasks: "create_droplet.yaml"

@@ -1,0 +1,26 @@
+# app/ansible/main.yaml
+- name: Main Playbook for Managing Jobs
+  hosts: localhost
+  gather_facts: no
+  vars_prompt:
+    - name: "job_type"
+      prompt: "Enter the job you want to run (e.g., create_cpu, create_gpu, test, shutdown, train, inference, verify)"
+      private: no
+  tasks:
+    - name: Read DigitalOcean API key from file
+      set_fact:
+        digital_ocean_api_key: "{{ lookup('file', lookup('env', 'KEYS_DIR') + '/digital_ocean_key') }}"
+
+    - name: Read DigitalOcean user credentials from files
+      set_fact:
+        new_user: "{{ lookup('file', lookup('env', 'KEYS_DIR') + '/digital_ocean_user/username') | trim }}"
+        user_password: "{{ lookup('file', lookup('env', 'KEYS_DIR') + '/digital_ocean_user/password') | trim }}"
+        ssh_public_key: "{{ lookup('file', lookup('env', 'HOME') + '/.ssh/id_rsa.pub') | trim }}"
+
+    - name: Validate job type
+      fail:
+        msg: "Invalid job type: {{ job_type }}. Must be one of 'create_cpu', 'create_gpu', 'test', 'shutdown', 'train', 'inference', 'verify'."
+      when: job_type not in ['create_cpu', 'create_gpu', 'test', 'shutdown', 'train', 'inference', 'verify']
+
+    - name: Include the selected job tasks
+      include_tasks: "{{ job_type }}/{{ job_type }}.yaml"

@@ -1,0 +1,40 @@
+# app/ansible/delete_droplet.yaml
+- name: Delete a DigitalOcean Droplet
+  hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: Read DigitalOcean API key from file
+      set_fact:
+        digital_ocean_api_key: "{{ lookup('file', lookup('env', 'KEYS_DIR') + '/digital_ocean_key') }}"
+
+    - name: Retrieve the ID of the Droplet by name
+      uri:
+        url: https://api.digitalocean.com/v2/droplets
+        method: GET
+        headers:
+          Authorization: "Bearer {{ digital_ocean_api_key }}"
+        return_content: yes
+      register: droplet_list
+
+    - name: Find the ID of the specified Droplet
+      set_fact:
+        droplet_id: >-
+          {{
+            (droplet_list.json.droplets | selectattr('name', 'equalto', droplet_name) | list | first).id
+          }}
+      vars:
+        droplet_name: "Google-Gemma-Droplet"
+
+    - name: Delete the Droplet
+      uri:
+        url: "https://api.digitalocean.com/v2/droplets/{{ droplet_id }}"
+        method: DELETE
+        headers:
+          Authorization: "Bearer {{ digital_ocean_api_key }}"
+        status_code: 204
+      when: droplet_id is defined
+
+    - name: Ensure Droplet ID was found
+      fail:
+        msg: "Droplet with name '{{ droplet_name }}' was not found."
+      when: droplet_id is not defined

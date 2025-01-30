@@ -1,0 +1,26 @@
+#!/bin/bash
+
+# Use the home directory of the current user
+SSH_DIR="$HOME/.ssh"
+
+# Ensure the SSH directory exists and has the correct permissions
+mkdir -p "$SSH_DIR"
+chmod 700 "$SSH_DIR"
+
+# Define the SSH key file path
+SSH_KEY="$SSH_DIR/id_rsa"
+
+# Check if the SSH key pair already exists
+if [ ! -f "$SSH_KEY" ]; then
+    # Generate the SSH key pair
+    ssh-keygen -t rsa -b 4096 -f "$SSH_KEY" -N ""
+    chmod 600 "$SSH_KEY"
+    chmod 644 "${SSH_KEY}.pub"
+    echo "SSH key pair generated and stored in $SSH_DIR"
+else
+    echo "SSH key pair already exists in $SSH_DIR"
+fi
+
+# Display the public key for verification
+echo "Public key content:"
+cat "${SSH_KEY}.pub"

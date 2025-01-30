@@ -1,0 +1,7 @@
+- name: Create 512mb ubuntu 24.04 CPU Droplet
+  vars:
+    droplet_name: "ubuntu-s-1vcpu-512mb-10gb-nyc1-01"
+    droplet_region: "nyc1"
+    droplet_size: "s-1vcpu-512mb-10gb"
+    droplet_image: "ubuntu-24-04-x64"
+  include_tasks: "create_droplet/create_droplet.yaml"

@@ -1,0 +1,29 @@
+- name: Set the public IP of the droplet
+  set_fact:
+    droplet_public_ip: "147.182.184.34"
+
+- name: Set the password
+  set_fact:
+    user_password: "{{ lookup('file', lookup('env', 'KEYS_DIR') + '/digital_ocean_user/password') | trim }}"
+
+- name: Wait for the droplet to become reachable
+  wait_for:
+    host: "{{ droplet_public_ip }}"
+    port: 22
+    timeout: 300
+    state: started
+
+- name: Attempt SSH connection using RSA key
+  ansible.builtin.command:
+    cmd: ssh -o StrictHostKeyChecking=no -i "{{ lookup('env', 'HOME') }}/.ssh/id_rsa" {{ new_user }}@{{ droplet_public_ip }} "echo hello world"
+  register: ssh_result
+  ignore_errors: yes
+
+- name: Check SSH connection result
+  fail:
+    msg: "SSH login using RSA key failed for user {{ new_user }}."
+  when: ssh_result.rc != 0
+
+- name: Display successful SSH connection
+  debug:
+    msg: "Successfully logged in as {{ new_user }} using RSA key."
